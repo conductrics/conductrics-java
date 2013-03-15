@@ -3,6 +3,8 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 import com.google.gson.Gson;
+import java.security.SecureRandom;
+import java.math.BigInteger;
 // vim: let g:syntastic_java_javac_classpath="lib/gson-2.2.2.jar"
 
 public class Conductrics {
@@ -14,37 +16,10 @@ public class Conductrics {
 
 	/** Agent is the focal point for using the Conductrics API.
 	 * Each agent makes decisions, and learns to optimize those decisions to maximize reward.
-	 * Example:
-	 *    import com.conductrics.*;
-	 *    import java.util.Arrays;
-	 *
-	 *    enum Color {
-	 *      RED,
-	 *      BLUE,
-	 *      GREEN
-	 *    }
-	 *
-	 *    class MyApp {
-	 *      public static void main(String[] args) {
-	 *        Conductrics.apiKey = "..."; // from your signup email
-	 *        Conductrics.ownerCode = "..."; // from your signup email
-	 *
-	 *        // Agents are very light-weight, and need not be cached.
-	 *        Conductrics.Agent agent = new Conductrics.Agent("my-first-agent");
-	 *
-	 *        // Decisions, and the rewards they generate, are correlated by passing in a session id that is unique per-visitor.
-	 *        String sessionId = "1234";
-	 *
-	 *        // Now, you can make a choice between any number/kind of objects.
-	 *        Color color = agent.decide(sessionId, Arrays.asList(Color.RED, Color.BLUE, Color.GREEN));
-	 *
-	 *        // Later, if the user does something good.
-	 *        agent.reward(sessionId); // This accepts an optional value.
-	 *      }
-	 *    }
+	 * Example: see ../test/SimpleTest.java
 	 */
 	public static class Agent {
-		private String name;
+		public String name;
 		private String baseUrl;
 		private String apiKey;
 		private String ownerCode;
@@ -58,9 +33,10 @@ public class Conductrics {
 		 * By default, the base URL is an 'https:' URL,
 		 * this can also be used to connect without SSL if you want.
 		 */
-		public void setBaseUrl(String url) throws MalformedURLException {
+		public Agent setBaseUrl(String url) throws MalformedURLException {
 			new URL(url); // force it to parse, throws
 			this.baseUrl = url;
+			return this;
 		}
 
 		/** Specify an API key for this instance (optional).
@@ -145,12 +121,16 @@ public class Conductrics {
 		}
 		public class RewardOptions extends Options {
 			public Double value;
+			public RewardOptions() { value = 1.0; }
+			public RewardOptions(Double v) { value = v; }
 			public Headers toHeaders() {
 				Headers h = super.toHeaders();
-				if( value != null )
+				if( value != null && value != 1.0 )
 					h.put("x-mpath-reward", String.format("%.2f", value));
 				return h;
 			}
+		}
+		public class ExpireOptions extends Options {
 		}
 		protected class SimpleDecision {
 			public String session;
@@ -192,7 +172,7 @@ public class Conductrics {
 			// Set headers
 			Headers h = opts.toHeaders();
 			for( String k : h.keySet() ) {
-				System.out.println(String.format("Setting header... %s=%s", k, h.get(k)));
+				// System.out.println(String.format("Setting header... %s=%s", k, h.get(k)));
 				conn.setRequestProperty(k, h.get(k));
 			}
 
@@ -242,16 +222,36 @@ public class Conductrics {
 			return defaultChoice;
 		}
 
-		public Double reward(String sessionId) { return this.reward(sessionId, new RewardOptions()); }
+		public Double reward(String sessionId) {
+			RewardOptions opts = new RewardOptions();
+			opts.session = sessionId;
+			return this.reward(sessionId, opts);
+		}
+		public Double reward(String sessionId, Double value) {
+			RewardOptions opts = new RewardOptions();
+			opts.session = sessionId;
+			opts.value = value;
+			return this.reward(sessionId, opts);
+		}
 		public Double reward(String sessionId, RewardOptions opts) {
-			String result = requestJson(opts, "goal");
+			opts.session = sessionId;
+			if( opts.apikey == null )
+				opts.apikey = this.getApiKey();
+			String result = requestJson(opts, this.buildUrl("goal"));
 			return this.gson.fromJson(result, SimpleReward.class).value;
+		}
+
+		public void expire(String sessionId) { this.expire(sessionId, new ExpireOptions()); }
+		public void expire(String sessionId, ExpireOptions opts) {
+			requestJson(opts, this.buildUrl("expire"));
 		}
 
 	}
 
 	// Static util stuff:
-	private static String readStream(InputStream is) {
+	private static SecureRandom random = new SecureRandom();
+	public static String createSessionId() { return new BigInteger(130, new SecureRandom()).toString(32); }
+	public static String readStream(InputStream is) {
 		Scanner s = new Scanner(is,"UTF-8").useDelimiter("\\A");
 		return s.hasNext() ? s.next() : "";
 	}
