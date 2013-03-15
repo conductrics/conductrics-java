@@ -111,14 +111,23 @@ public class SimpleTest {
 			new ExpireTest()
 		);
 		for( Test t : tests ) {
-			try {
-				System.out.print(t.getClass().getSimpleName() + ": ");
-				t.run();
-				System.out.println("PASS");
-			} catch( Exception e ) {
-				System.out.println("FAIL");
-				e.printStackTrace();
+			System.out.print(t.getClass().getSimpleName() + ": ");
+			int repeat = 10;
+			int sum = 0;
+			for( int i = 0; i < repeat; i++ ) {
+				long start = System.currentTimeMillis();
+				try {
+					t.run();
+				} catch( Exception e ) {
+					System.out.println("FAIL");
+					e.printStackTrace();
+					break;
+				}
+				long elapsed = System.currentTimeMillis() - start;
+				if( i > 0 ) // ignore the first timing, so connections can warm up
+					sum += elapsed;
 			}
+			System.out.println(String.format("(%dms) PASS", sum / (repeat - 1)));
 		}
 
 	}

@@ -154,6 +154,7 @@ public class Agent {
 		HttpURLConnection conn;
 		try {
 			conn = (HttpURLConnection)u.openConnection();
+			conn.setDefaultUseCaches(false);
 		} catch( IOException ex ) {
 			ex.printStackTrace();
 			return null;
