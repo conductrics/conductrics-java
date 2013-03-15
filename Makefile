@@ -1,6 +1,6 @@
 
 CLASSPATH:="bin:lib/gson-2.2.2.jar"
-CLASS=bin/com/conductrics/Conductrics.class
+CLASS=bin/com/conductrics/Conductrics.class bin/com/conductrics/Agent.class
 
 all: $(CLASS)
 

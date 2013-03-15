@@ -10,7 +10,7 @@ public class SimpleTest {
 		GREEN
 	}
 	public static abstract class Test {
-		Conductrics.Agent agent;
+		Agent agent;
 		public void setup() { }
 		public abstract void run();
 		public void teardown() { }
@@ -30,13 +30,13 @@ public class SimpleTest {
 	 */
 	public static class CreateAgentTest extends Test {
 		public void run() {
-			this.agent = new Conductrics.Agent("java-test-one");
+			this.agent = new Agent("java-test-one");
 			assert this.agent.name == "java-test-one" : "a dev NBA create an Agent, and give it a name";
 		}
 	}
 	public static class GlobalSettingsTest extends Test {
 		public void run() {
-			this.agent = new Conductrics.Agent("java-test-two");
+			this.agent = new Agent("java-test-two");
 			Conductrics.apiKey = "magic-api-key";
 			Conductrics.ownerCode = "magic-owner-code";
 			String save = Conductrics.baseUrl;
@@ -52,7 +52,7 @@ public class SimpleTest {
 	}
 	public static class AgentSettingsTest extends Test {
 		public void run() {
-			this.agent = new Conductrics.Agent("unit-test");
+			this.agent = new Agent("unit-test");
 			try {
 				this.agent.setApiKey("local-api-key")
 					.setOwnerCode("local-owner-code")
@@ -69,7 +69,7 @@ public class SimpleTest {
 	}
 	public static class DecisionTest extends Test {
 		public void run() {
-			this.agent = new Conductrics.Agent("unit-test");
+			this.agent = new Agent("unit-test");
 			Conductrics.apiKey = "api-HFrPvhjnhVufRXtCGOIzejSW";
 			Conductrics.ownerCode = "owner_HJJnKxAdm";
 			String sessionId = Conductrics.createSessionId();
@@ -79,7 +79,7 @@ public class SimpleTest {
 	}
 	public static class RewardTest extends Test {
 		public void run() {
-			this.agent = new Conductrics.Agent("unit-test")
+			this.agent = new Agent("unit-test")
 				.setApiKey("api-HFrPvhjnhVufRXtCGOIzejSW")
 				.setOwnerCode("owner_HJJnKxAdm");
 			String sessionId = Conductrics.createSessionId();
@@ -91,7 +91,7 @@ public class SimpleTest {
 	}
 	public static class ExpireTest extends Test {
 		public void run() {
-			this.agent = new Conductrics.Agent("unit-test")
+			this.agent = new Agent("unit-test")
 				.setApiKey("api-HFrPvhjnhVufRXtCGOIzejSW")
 				.setOwnerCode("owner_HJJnKxAdm");
 			String sessionId = Conductrics.createSessionId();
